@@ -1,0 +1,5 @@
+# 统一换行符，避免在 Windows 上 clone 后 .sh / .command 因 CRLF 无法运行
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.zip binary
