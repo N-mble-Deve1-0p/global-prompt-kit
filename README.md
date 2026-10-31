@@ -4,7 +4,7 @@
 
 - **全局准则**：每次对话都生效的底层规则，管住模型的通病：答得浅、乱认同、编来源、铺垫废话、一改就重写全文、Agent 无限重试。
 - **14 个场景 Skill**：思考、决策、研究、科研知识库、学习、讲解、人生规划等需要固定流程的任务。缺信息时先引导你补充，再按优化过的流程执行。
-- **一份 SKILL.md，多处通用**：Claude、Gemini、GitHub Copilot、Kiro、Kimi、WorkBuddy、Cherry Studio Agent 都能读取同一份 SKILL.md；不支持的环境用自动生成的可粘贴模板。
+- **一份 SKILL.md，多处通用**：Claude、Gemini、Z Code、Cline、Kilo Code、GitHub Copilot、Kiro、Kimi、WorkBuddy、Cherry Studio Agent 都能读取同一份 SKILL.md；不支持的环境用自动生成的可粘贴模板。
 
 ## 快速开始
 
@@ -14,15 +14,19 @@
 |---|---|---|
 | **Claude 网页版 / 桌面版 / 手机 App** | 设置 → 个人偏好，粘贴 `dist/claude.md` | 在网页或桌面版：Customize → Skills → Upload，逐个上传 `dist/skill-zips/*.zip`；手机端自动可用 |
 | **Gemini 网页版 / Mac 应用 / 手机 App** | 设置中的个人指令，粘贴 `core/global-prompt-lite.md` | 在网页或 Mac 应用：Customize → Skills → 导入 `skills/<名称>/SKILL.md`（不要传 ZIP）；手机端自动可用 |
-| **Claude Code** | 安装器自动写入 | 安装器，菜单选 1 |
-| **GitHub Copilot**（VS Code、JetBrains 等）、**Kimi Code** | 安装器自动写入 | 安装器，菜单选 2 |
-| **Kiro** | 安装器自动写入 | 安装器，菜单选 3 |
-| **腾讯 WorkBuddy**（Windows、macOS） | 设置 → 功能 → 个性化 → 自定义指令，粘贴 `dist/lite-router.md` | 安装器，菜单选 4 |
+| **Claude Code**、**Z Code** | 安装器自动写入 | 安装器，菜单选 1 |
+| **VS Code + Kilo Code**、**GitHub Copilot**、**Kimi Code** | Copilot、Kimi Code 自动写入；Kilo Code 见 `adapters/kilo-code.md` | 安装器，菜单选 2 |
+| **VS Code + Cline** | 安装器自动写入 | 安装器，菜单选 3 |
+| **Kiro**（0.9 及以上） | 安装器自动写入 | 安装器，菜单选 4 |
+| **腾讯 WorkBuddy**（Windows、macOS） | 设置 → 功能 → 个性化 → 自定义指令，粘贴 `dist/lite-router.md` | 安装器，菜单选 5 |
 | **Cherry Studio** | 默认助手的提示词，按所选模型粘贴对应版本 | Agent 模式：安装器，菜单选 1；聊天助手：用 `dist/templates/` 建场景助手 |
-| **Kimi 网页版 / App** | 有自定义指令就放 `dist/lite-router.md`；没有就在对话开头粘贴 | 插件 → 技能 → 自定义 → 文档转技能，上传 `SKILL.md` |
+| **Kimi 电脑客户端** | 没有入口，在对话开头粘贴 `dist/lite-router.md` | Work 模式 → 技能 → 上传本地技能 |
+| **Kimi 网页版 / App** | 没有入口，在对话开头粘贴 `dist/lite-router.md` | 插件 → 技能 → 自定义 → 文档转技能，上传 `SKILL.md` |
 | **其他国内模型官方 App**（DeepSeek、通义、豆包、智谱等） | 有自定义指令就放 `core/global-prompt-lite.md`；没有就在对话开头粘贴 | 需要时粘贴 `dist/templates/<名称>.md` |
 
 **安装器**：Windows 双击 `install-windows.bat`；macOS 双击 `install-macos.command`；Linux 在终端运行 `bash install-linux.sh`。可以多选。安装器会装 Skills，并在支持的工具里自动写入全局准则；如果那个文件里是你自己写的内容，不会覆盖。
+
+**装完怎么验证**：安装器菜单选 `c` 可以一键检查电脑上各工具的安装情况；在各工具里怎么确认、怎么测试是否生效，见 `docs/install.md` 的"验证安装"。
 
 技能总要手动选、不会自动触发？见 `docs/install.md` 的"技能不会自动触发怎么办"。
 
@@ -67,7 +71,8 @@ core/
   global-prompt-lite.md   精简版，用于有字数上限的输入框
 adapters/
   claude.md  gemini.md  openai.md  grok.md  domestic.md  coding-agents.md   按模型：包装方式和附加片段
-  cherry-studio.md  workbuddy.md  github-copilot.md  kiro.md  kimi.md        按工具：放置位置和安装方法
+  cherry-studio.md  workbuddy.md  zcode.md  cline.md  kilo-code.md
+  github-copilot.md  kiro.md  kimi.md                                        按工具：放置位置和安装方法
 skills/                   14 个 Skill（SKILL.md 格式，部分带 assets/ 附件）
 install-windows.bat       Windows：双击安装 Skills 和全局准则
 install-macos.command     macOS：双击安装 Skills 和全局准则

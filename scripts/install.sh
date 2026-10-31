@@ -5,11 +5,13 @@
 # 用法：
 #   bash scripts/install.sh                          交互菜单
 #   bash scripts/install.sh claude agents kiro       直接指定一个或多个目标：
-#       claude     ~/.claude/skills      Claude Code、Cherry Studio Agent        全局准则 → ~/.claude/CLAUDE.md
-#       agents     ~/.agents/skills      GitHub Copilot（VS Code 等）、Kimi Code  全局准则 → ~/.copilot/copilot-instructions.md、~/.kimi-code/AGENTS.md
+#       claude     ~/.claude/skills      Claude Code、Z Code、Cherry Studio Agent  全局准则 → ~/.claude/CLAUDE.md、~/.zcode/AGENTS.md
+#       agents     ~/.agents/skills      Kilo Code、GitHub Copilot、Kimi Code      全局准则 → ~/.copilot/copilot-instructions.md、~/.kimi-code/AGENTS.md（Kilo Code 需手动设置）
+#       cline      ~/.cline/skills       Cline（VS Code 插件）                     全局准则 → ~/.cline/rules/global-prompt-kit.md
 #       kiro       ~/.kiro/skills        Kiro                                    全局准则 → ~/.kiro/steering/global-prompt-kit.md
 #       workbuddy  ~/.workbuddy-ai/skills（新版 WorkBuddy AI）或 ~/.workbuddy/skills（旧版）  全局准则需在界面里粘贴
 #       all        以上全部
+#       check      只检查各工具的安装情况（技能是否齐全、是否最新；全局准则是否存在、是否最新），不安装
 #       zip        重新打包 claude.ai 用的 ZIP（dist/skill-zips 已有现成的，一般不需要）
 #   --update     已安装的旧版本先备份，再换成新版本（默认跳过已安装的）
 #   --no-rules   只装 Skills，不写全局准则文件
@@ -142,16 +144,24 @@ write_rules() {
 
 # ---------- 各目标 ----------
 do_claude() {
-  install_skills "${SKILLS_DIR:-$HOME/.claude/skills}" "Claude Code / Cherry Studio Agent"
+  install_skills "${SKILLS_DIR:-$HOME/.claude/skills}" "Claude Code / Z Code / Cherry Studio Agent"
   write_rules "$ROOT/dist/claude.md" "$HOME/.claude/CLAUDE.md" 1
+  if [ -d "$HOME/.zcode" ]; then
+    write_rules "$ROOT/dist/coding-agents.md" "$HOME/.zcode/AGENTS.md" 1
+  fi
   note "Cherry Studio 聊天助手不读这些文件：把 dist/ 里对应模型的版本粘贴到助手的提示词里"
 }
 do_agents() {
-  install_skills "${SKILLS_DIR:-$HOME/.agents/skills}" "GitHub Copilot / Kimi Code"
+  install_skills "${SKILLS_DIR:-$HOME/.agents/skills}" "Kilo Code / GitHub Copilot / Kimi Code"
   write_rules "$ROOT/dist/coding-agents.md" "$HOME/.copilot/copilot-instructions.md" 1
   if [ -d "$HOME/.kimi-code" ]; then
     write_rules "$ROOT/dist/coding-agents.md" "$HOME/.kimi-code/AGENTS.md" 1
   fi
+  note "Kilo Code 的全局准则需要手动设置，方法见 adapters/kilo-code.md"
+}
+do_cline() {
+  install_skills "${SKILLS_DIR:-$HOME/.cline/skills}" "Cline"
+  write_rules "$ROOT/dist/coding-agents.md" "$HOME/.cline/rules/global-prompt-kit.md" 1
 }
 do_kiro() {
   install_skills "${SKILLS_DIR:-$HOME/.kiro/skills}" "Kiro"
@@ -168,6 +178,88 @@ do_workbuddy() {
   note "WorkBuddy：头像 → 设置 → 功能 → 个性化 → 自定义指令，粘贴 dist/lite-router.md；并在技能列表里确认本项目的技能都是「启用」状态"
 }
 
+# ---------- 检查安装情况 ----------
+check_skills() {
+  dir="$1"
+  if [ ! -d "$dir" ]; then say "  技能：[未安装] 没有找到 $dir"; return 0; fi
+  total=0; present=0; missing=""; differ=""
+  for d in "$ROOT"/skills/*/; do
+    src="${d%/}"; n="$(basename "$src")"; total=$((total + 1))
+    if [ -f "$dir/$n/SKILL.md" ]; then
+      present=$((present + 1))
+      if ! diff -rq "$src" "$dir/$n" >/dev/null 2>&1; then differ="$differ $n"; fi
+    else
+      missing="$missing $n"
+    fi
+  done
+  if [ "$present" = "$total" ] && [ -z "$differ" ]; then
+    say "  技能：[正常] $present/$total 个，均为最新版（$dir）"
+  else
+    say "  技能：[需处理] 已安装 $present/$total 个（$dir）"
+    if [ -n "$missing" ]; then say "    缺少：$missing"; fi
+    if [ -n "$differ" ]; then say "    不是最新版：$differ（重新运行安装器，更新选 y）"; fi
+  fi
+}
+check_rules() {
+  file="$1"; src="$2"; add_marker="$3"
+  if [ ! -f "$file" ]; then say "  全局准则：[未安装] 没有找到 $file"; return 0; fi
+  if grep -q "global-prompt-kit:" "$file"; then
+    same=0
+    if [ "$add_marker" = 1 ]; then
+      if { printf '%s\n\n' "$(cat "$ROOT/dist/MARKER.txt")"; cat "$src"; } | cmp -s - "$file"; then same=1; fi
+    else
+      if cmp -s "$src" "$file"; then same=1; fi
+    fi
+    if [ "$same" = 1 ]; then
+      say "  全局准则：[正常] 最新版（$file）"
+    else
+      say "  全局准则：[需处理] 已安装但不是最新版（$file）。重新运行安装器，更新选 y"
+    fi
+  elif grep -q "全局工作准则" "$file"; then
+    say "  全局准则：[正常] 已手动合并进 $file（无法自动判断是否最新，可对照 dist/$(basename "$src")）"
+  else
+    say "  全局准则：[需处理] $file 是你自己的内容，里面没有本项目的全局准则。请手动合并 dist/$(basename "$src")"
+  fi
+}
+do_check() {
+  wb_dir="$HOME/.workbuddy/skills"
+  if [ -d "$HOME/.workbuddy-ai" ]; then wb_dir="$HOME/.workbuddy-ai/skills"; fi
+  say ""
+  say "======================================"
+  say " 安装情况检查（对照本项目当前版本）"
+  say "======================================"
+  say "[1] Claude Code / Z Code / Cherry Studio Agent（共用技能文件夹）"
+  check_skills "$HOME/.claude/skills"
+  say "  Claude Code："
+  check_rules "$HOME/.claude/CLAUDE.md" "$ROOT/dist/claude.md" 1
+  if [ -d "$HOME/.zcode" ]; then
+    say "  Z Code："
+    check_rules "$HOME/.zcode/AGENTS.md" "$ROOT/dist/coding-agents.md" 1
+  fi
+  say "[2] Kilo Code / GitHub Copilot / Kimi Code（共用技能文件夹）"
+  check_skills "$HOME/.agents/skills"
+  say "  GitHub Copilot："
+  check_rules "$HOME/.copilot/copilot-instructions.md" "$ROOT/dist/coding-agents.md" 1
+  if [ -d "$HOME/.kimi-code" ]; then
+    say "  Kimi Code："
+    check_rules "$HOME/.kimi-code/AGENTS.md" "$ROOT/dist/coding-agents.md" 1
+  fi
+  say "  Kilo Code：全局准则需要在 Kilo Code 的配置里查看（见 adapters/kilo-code.md）"
+  say "[3] Cline"
+  check_skills "$HOME/.cline/skills"
+  check_rules "$HOME/.cline/rules/global-prompt-kit.md" "$ROOT/dist/coding-agents.md" 1
+  say "[4] Kiro"
+  check_skills "$HOME/.kiro/skills"
+  check_rules "$HOME/.kiro/steering/global-prompt-kit.md" "$ROOT/dist/kiro-steering.md" 0
+  say "[5] WorkBuddy"
+  check_skills "$wb_dir"
+  say "  全局准则：需要在 WorkBuddy 里查看（头像 → 设置 → 功能 → 个性化 → 自定义指令）"
+  say ""
+  say "没用的工具显示[未安装]是正常的。"
+  say "Claude 网页版/桌面聊天、Gemini、Kimi（网页版和桌面版）、Cherry Studio 聊天助手无法从电脑上检查，"
+  say "验证方法见 docs/install.md 的「验证安装」一节。"
+}
+
 # ---------- 交互菜单 ----------
 menu() {
   say "======================================"
@@ -175,15 +267,17 @@ menu() {
   say " 当前系统：$OS_NAME"
   say "======================================"
   say "要装到哪些工具？可以多选，用空格分开，例如：1 3"
-  say "  1) Claude Code（命令行或桌面版的 Code）、Cherry Studio Agent"
-  say "  2) GitHub Copilot（VS Code、JetBrains 等）、Kimi Code"
-  say "  3) Kiro"
-  say "  4) 腾讯 WorkBuddy"
-  say "  5) 以上全部"
+  say "  1) Claude Code、Z Code、Cherry Studio Agent"
+  say "  2) Kilo Code（VS Code 插件）、GitHub Copilot、Kimi Code"
+  say "  3) Cline（VS Code 插件）"
+  say "  4) Kiro"
+  say "  5) 腾讯 WorkBuddy"
+  say "  6) 以上全部"
+  say "  c) 只检查各工具的安装情况，不安装"
   say "  z) 重新打包 claude.ai 用的 ZIP（一般不需要，dist/skill-zips 里已有）"
   say "  q) 退出"
   say ""
-  say "  Claude 网页版/桌面聊天、Gemini、Kimi 网页版不需要运行本脚本，见 docs/install.md。"
+  say "  Claude 网页版/桌面聊天、Gemini、Kimi（网页版和桌面版）不需要运行本脚本，见 docs/install.md。"
   printf '请输入编号后按回车：'
   read -r choice || choice=q
   choice="${choice//,/ }"
@@ -192,15 +286,17 @@ menu() {
     case "$c" in
       1) TARGETS="$TARGETS claude" ;;
       2) TARGETS="$TARGETS agents" ;;
-      3) TARGETS="$TARGETS kiro" ;;
-      4) TARGETS="$TARGETS workbuddy" ;;
-      5) TARGETS="$TARGETS all" ;;
+      3) TARGETS="$TARGETS cline" ;;
+      4) TARGETS="$TARGETS kiro" ;;
+      5) TARGETS="$TARGETS workbuddy" ;;
+      6) TARGETS="$TARGETS all" ;;
       z|Z) TARGETS="$TARGETS zip" ;;
+      c|C) TARGETS="$TARGETS check" ;;
       *) say "已退出。"; exit 0 ;;
     esac
   done
   if [ -z "$TARGETS" ]; then say "已退出。"; exit 0; fi
-  case "$TARGETS" in *zip*) return 0 ;; esac
+  case "$TARGETS" in *zip*|*check*) return 0 ;; esac
   printf '如果以前装过，要更新成新版本吗？旧版本会先备份。(y/N)：'
   read -r yn || yn=n
   case "$yn" in y|Y|yes|YES) UPDATE=1 ;; esac
@@ -214,9 +310,9 @@ if [ -z "$TARGETS" ] || [ "$TARGETS" = "menu" ]; then TARGETS=""; menu; fi
 
 for t in $TARGETS; do
   case "$t" in
-    all) TARGETS="claude agents kiro workbuddy"; break ;;
-    claude|agents|kiro|workbuddy|zip|--zip) ;;
-    *) say "未知选项：$t（可选 claude / agents / kiro / workbuddy / all / zip，可加 --update、--no-rules）"; exit 1 ;;
+    all) TARGETS="claude agents cline kiro workbuddy"; break ;;
+    claude|agents|cline|kiro|workbuddy|zip|--zip|check) ;;
+    *) say "未知选项：$t（可选 claude / agents / cline / kiro / workbuddy / all / check / zip，可加 --update、--no-rules）"; exit 1 ;;
   esac
 done
 
@@ -224,9 +320,11 @@ for t in $TARGETS; do
   case "$t" in
     claude)    do_claude ;;
     agents)    do_agents ;;
+    cline)     do_cline ;;
     kiro)      do_kiro ;;
     workbuddy) do_workbuddy ;;
     zip|--zip) make_zips ;;
+    check)     do_check; exit 0 ;;
   esac
 done
 

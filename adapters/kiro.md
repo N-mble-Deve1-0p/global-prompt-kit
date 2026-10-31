@@ -2,6 +2,15 @@
 
 Kiro 是 AWS 推出的 AI 编程 IDE，也有命令行版本。
 
+**版本要求**：技能功能是 2026 年 2 月发布的 **Kiro IDE 0.9** 加入的。如果你在 Kiro 里找不到下面说的入口，先在菜单里检查更新。
+
+## 在哪里找
+打开 Kiro，点左侧活动栏的 **Kiro 图标**（幽灵形状）打开 Kiro 面板，里面有一节叫 **Agent Steering & Skills**：
+- 安装成功后，这里能看到本项目的技能，以及全局 Steering 文件 `global-prompt-kit`。
+- 这一节右上角的 **+** 可以手动导入技能或新建 Steering 文件。
+
+技能和 Steering 只在 Kiro 的 **AI 对话（Agent）** 里生效，普通的代码编辑、补全用不到它们。
+
 ## Skills：完全支持，会自动调用
 Kiro 支持标准的 SKILL.md 格式，和本项目一致。
 

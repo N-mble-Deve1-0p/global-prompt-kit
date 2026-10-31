@@ -1,10 +1,28 @@
 # Kimi 适配
 
-Kimi 有两个完全不同的产品，放法不一样：
-- **Kimi 网页版 / App**：聊天助手。
+Kimi 有三种用法，放法不一样：
+- **Kimi 网页版 / 手机 App**：聊天助手。
+- **Kimi 电脑客户端（Windows / Mac）**：有普通聊天和 **Work 模式**。Work 模式是本地 Agent，支持技能。
 - **Kimi Code**：编程用的命令行工具，也有编辑器插件。
 
-## Kimi 网页版 / App
+## Kimi 电脑客户端：用 Work 模式
+普通聊天模式没有技能入口。切换到 **Work 模式** 后，侧栏有 **技能** 入口。
+
+### Skills：可以上传本地技能
+1. 打开 Kimi 电脑客户端，切换到 Work 模式，点侧栏的 **技能**。
+2. 选择上传本地技能。先试上传 `dist/skill-zips/` 里的 ZIP；如果它不接受 ZIP，就上传 `skills/<名称>/SKILL.md`。
+3. 使用时，在输入框输入 `/` 可以快速选择技能；不选的话，Kimi 也会根据任务自动挑选合适的技能。
+
+官方说明里只写了"支持上传本地技能"，没有说明接受哪种格式。上传后打开技能详情，对照原文检查一遍内容有没有被改写。
+
+### 全局准则：没有入口
+目前没有找到 Kimi 客户端"自定义指令"类设置的官方说明。可行的替代办法：
+- 在新对话开头粘贴 `dist/lite-router.md`。
+- 如果你的客户端有"常用语"或"快捷短语"之类的功能，把它存成一条，新对话时一键插入。
+
+来源：[Kimi Work 产品介绍](https://www.kimi.com/zh-cn/help/kimi-work/overview)、[在 Agent 模式中使用技能](https://www.kimi.com/en/help/plugins-and-skills/use-skills-in-agent)
+
+## Kimi 网页版 / 手机 App
 
 ### Skills：可以导入，会自动调用，但要逐个转换
 Kimi 的技能入口在 **插件 → 技能 → 自定义**。官方说明里，相关技能会被自动加载。

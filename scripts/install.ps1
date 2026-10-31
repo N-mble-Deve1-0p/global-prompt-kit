@@ -4,11 +4,13 @@
 # 用法：
 #   .\scripts\install.ps1                                  交互菜单
 #   .\scripts\install.ps1 -Target "claude,agents,kiro"     直接指定一个或多个目标：
-#       claude     %USERPROFILE%\.claude\skills     Claude Code、Cherry Studio Agent        全局准则 → .claude\CLAUDE.md
-#       agents     %USERPROFILE%\.agents\skills     GitHub Copilot（VS Code 等）、Kimi Code  全局准则 → .copilot\copilot-instructions.md、.kimi-code\AGENTS.md
+#       claude     %USERPROFILE%\.claude\skills     Claude Code、Z Code、Cherry Studio Agent  全局准则 → .claude\CLAUDE.md、.zcode\AGENTS.md
+#       agents     %USERPROFILE%\.agents\skills     Kilo Code、GitHub Copilot、Kimi Code      全局准则 → .copilot\copilot-instructions.md、.kimi-code\AGENTS.md（Kilo Code 需手动设置）
+#       cline      %USERPROFILE%\.cline\skills      Cline（VS Code 插件）                     全局准则 → .cline\rules\global-prompt-kit.md
 #       kiro       %USERPROFILE%\.kiro\skills       Kiro                                    全局准则 → .kiro\steering\global-prompt-kit.md
 #       workbuddy  %USERPROFILE%\.workbuddy-ai\skills（新版）或 .workbuddy\skills（旧版）  腾讯 WorkBuddy，全局准则需在界面里粘贴
 #       all        以上全部
+#       check      只检查各工具的安装情况（技能是否齐全、是否最新；全局准则是否存在、是否最新），不安装
 #       zip        重新打包 claude.ai 用的 ZIP（dist\skill-zips 已有现成的，一般不需要）
 #   -Update      已安装的旧版本先备份，再换成新版本（默认跳过已安装的）
 #   -NoRules     只装 Skills，不写全局准则文件
@@ -32,11 +34,11 @@ $UserHome = [Environment]::GetFolderPath("UserProfile")
 $Stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $script:ManualNotes = @()
-$Valid = @("menu", "claude", "agents", "kiro", "workbuddy", "all", "zip")
+$Valid = @("menu", "claude", "agents", "cline", "kiro", "workbuddy", "all", "zip", "check")
 $Targets = @($Target -split "[\s,，]+" | Where-Object { $_ } | ForEach-Object { $_.ToLower() })
 foreach ($t in $Targets) {
   if ($Valid -notcontains $t) {
-    Write-Host "未知选项：$t（可选 claude / agents / kiro / workbuddy / all / zip，多个用逗号分开，可加 -Update、-NoRules）"
+    Write-Host "未知选项：$t（可选 claude / agents / cline / kiro / workbuddy / all / check / zip，多个用逗号分开，可加 -Update、-NoRules）"
     exit 1
   }
 }
@@ -130,17 +132,26 @@ function Write-Rules([string]$Src, [string]$To, [bool]$AddMarker) {
 
 function Do-Claude {
   $to = if ($Dest) { $Dest } else { P @($UserHome, ".claude", "skills") }
-  Install-Skills $to "Claude Code / Cherry Studio Agent"
+  Install-Skills $to "Claude Code / Z Code / Cherry Studio Agent"
   Write-Rules (Join-Path $Dist "claude.md") (P @($UserHome, ".claude", "CLAUDE.md")) $true
+  if (Test-Path (Join-Path $UserHome ".zcode")) {
+    Write-Rules (Join-Path $Dist "coding-agents.md") (P @($UserHome, ".zcode", "AGENTS.md")) $true
+  }
   $script:ManualNotes += "Cherry Studio 聊天助手不读这些文件：把 dist\ 里对应模型的版本粘贴到助手的提示词里"
 }
 function Do-Agents {
   $to = if ($Dest) { $Dest } else { P @($UserHome, ".agents", "skills") }
-  Install-Skills $to "GitHub Copilot / Kimi Code"
+  Install-Skills $to "Kilo Code / GitHub Copilot / Kimi Code"
   Write-Rules (Join-Path $Dist "coding-agents.md") (P @($UserHome, ".copilot", "copilot-instructions.md")) $true
   if (Test-Path (Join-Path $UserHome ".kimi-code")) {
     Write-Rules (Join-Path $Dist "coding-agents.md") (P @($UserHome, ".kimi-code", "AGENTS.md")) $true
   }
+  $script:ManualNotes += "Kilo Code 的全局准则需要手动设置，方法见 adapters\kilo-code.md"
+}
+function Do-Cline {
+  $to = if ($Dest) { $Dest } else { P @($UserHome, ".cline", "skills") }
+  Install-Skills $to "Cline"
+  Write-Rules (Join-Path $Dist "coding-agents.md") (P @($UserHome, ".cline", "rules", "global-prompt-kit.md")) $true
 }
 function Do-Kiro {
   $to = if ($Dest) { $Dest } else { P @($UserHome, ".kiro", "skills") }
@@ -156,35 +167,127 @@ function Do-WorkBuddy {
   $script:ManualNotes += "如果 WorkBuddy 里看不到这些技能：完全退出 WorkBuddy 再打开；仍然没有，就在技能页面用「上传技能」导入"
 }
 
+function Same-Dir([string]$A, [string]$B) {
+  foreach ($f in Get-ChildItem -Recurse -File $A) {
+    if ($f.Name.StartsWith(".")) { continue }
+    $rel = $f.FullName.Substring($A.Length).TrimStart("\", "/")
+    $other = Join-Path $B $rel
+    if (-not (Test-Path $other)) { return $false }
+    if ((Get-FileHash $f.FullName).Hash -ne (Get-FileHash $other).Hash) { return $false }
+  }
+  return $true
+}
+
+function Check-Skills([string]$Dir) {
+  if (-not (Test-Path $Dir)) { Write-Host "  技能：[未安装] 没有找到 $Dir"; return }
+  $present = 0; $missing = @(); $differ = @()
+  foreach ($d in $SkillDirs) {
+    $t = Join-Path $Dir $d.Name
+    if (Test-Path (Join-Path $t "SKILL.md")) {
+      $present++
+      if (-not (Same-Dir $d.FullName $t)) { $differ += $d.Name }
+    } else { $missing += $d.Name }
+  }
+  $total = $SkillDirs.Count
+  if ($present -eq $total -and $differ.Count -eq 0) {
+    Write-Host "  技能：[正常] $present/$total 个，均为最新版（$Dir）"
+  } else {
+    Write-Host "  技能：[需处理] 已安装 $present/$total 个（$Dir）"
+    if ($missing.Count -gt 0) { Write-Host "    缺少：$($missing -join ' ')" }
+    if ($differ.Count -gt 0) { Write-Host "    不是最新版：$($differ -join ' ')（重新运行安装器，更新选 y）" }
+  }
+}
+
+function Check-Rules([string]$File, [string]$Src, [bool]$AddMarker) {
+  $srcName = Split-Path -Leaf $Src
+  if (-not (Test-Path $File)) { Write-Host "  全局准则：[未安装] 没有找到 $File"; return }
+  $actual = [IO.File]::ReadAllText($File)
+  if ($actual.Contains("global-prompt-kit:")) {
+    $expected = [IO.File]::ReadAllText($Src)
+    if ($AddMarker) {
+      $marker = [IO.File]::ReadAllText((Join-Path $Dist "MARKER.txt")).Trim()
+      $expected = "$marker`n`n$expected"
+    }
+    if ($actual -eq $expected) { Write-Host "  全局准则：[正常] 最新版（$File）" }
+    else { Write-Host "  全局准则：[需处理] 已安装但不是最新版（$File）。重新运行安装器，更新选 y" }
+  } elseif ($actual.Contains("全局工作准则")) {
+    Write-Host "  全局准则：[正常] 已手动合并进 $File（无法自动判断是否最新，可对照 dist\$srcName）"
+  } else {
+    Write-Host "  全局准则：[需处理] $File 是你自己的内容，里面没有本项目的全局准则。请手动合并 dist\$srcName"
+  }
+}
+
+function Do-Check {
+  $wb = if (Test-Path (Join-Path $UserHome ".workbuddy-ai")) { P @($UserHome, ".workbuddy-ai", "skills") } else { P @($UserHome, ".workbuddy", "skills") }
+  Write-Host ""
+  Write-Host "======================================"
+  Write-Host " 安装情况检查（对照本项目当前版本）"
+  Write-Host "======================================"
+  Write-Host "[1] Claude Code / Z Code / Cherry Studio Agent（共用技能文件夹）"
+  Check-Skills (P @($UserHome, ".claude", "skills"))
+  Write-Host "  Claude Code："
+  Check-Rules (P @($UserHome, ".claude", "CLAUDE.md")) (Join-Path $Dist "claude.md") $true
+  if (Test-Path (Join-Path $UserHome ".zcode")) {
+    Write-Host "  Z Code："
+    Check-Rules (P @($UserHome, ".zcode", "AGENTS.md")) (Join-Path $Dist "coding-agents.md") $true
+  }
+  Write-Host "[2] Kilo Code / GitHub Copilot / Kimi Code（共用技能文件夹）"
+  Check-Skills (P @($UserHome, ".agents", "skills"))
+  Write-Host "  GitHub Copilot："
+  Check-Rules (P @($UserHome, ".copilot", "copilot-instructions.md")) (Join-Path $Dist "coding-agents.md") $true
+  if (Test-Path (Join-Path $UserHome ".kimi-code")) {
+    Write-Host "  Kimi Code："
+    Check-Rules (P @($UserHome, ".kimi-code", "AGENTS.md")) (Join-Path $Dist "coding-agents.md") $true
+  }
+  Write-Host "  Kilo Code：全局准则需要在 Kilo Code 的配置里查看（见 adapters\kilo-code.md）"
+  Write-Host "[3] Cline"
+  Check-Skills (P @($UserHome, ".cline", "skills"))
+  Check-Rules (P @($UserHome, ".cline", "rules", "global-prompt-kit.md")) (Join-Path $Dist "coding-agents.md") $true
+  Write-Host "[4] Kiro"
+  Check-Skills (P @($UserHome, ".kiro", "skills"))
+  Check-Rules (P @($UserHome, ".kiro", "steering", "global-prompt-kit.md")) (Join-Path $Dist "kiro-steering.md") $false
+  Write-Host "[5] WorkBuddy"
+  Check-Skills $wb
+  Write-Host "  全局准则：需要在 WorkBuddy 里查看（头像 → 设置 → 功能 → 个性化 → 自定义指令）"
+  Write-Host ""
+  Write-Host "没用的工具显示[未安装]是正常的。"
+  Write-Host "Claude 网页版/桌面聊天、Gemini、Kimi（网页版和桌面版）、Cherry Studio 聊天助手无法从电脑上检查，"
+  Write-Host "验证方法见 docs\install.md 的「验证安装」一节。"
+}
+
 if ($Targets -contains "menu") {
   Write-Host "======================================"
   Write-Host " Global Prompt Kit - 安装（Windows）"
   Write-Host "======================================"
   Write-Host "要装到哪些工具？可以多选，用空格分开，例如：1 3"
-  Write-Host "  1) Claude Code（命令行或桌面版的 Code）、Cherry Studio Agent"
-  Write-Host "  2) GitHub Copilot（VS Code、JetBrains 等）、Kimi Code"
-  Write-Host "  3) Kiro"
-  Write-Host "  4) 腾讯 WorkBuddy"
-  Write-Host "  5) 以上全部"
+  Write-Host "  1) Claude Code、Z Code、Cherry Studio Agent"
+  Write-Host "  2) Kilo Code（VS Code 插件）、GitHub Copilot、Kimi Code"
+  Write-Host "  3) Cline（VS Code 插件）"
+  Write-Host "  4) Kiro"
+  Write-Host "  5) 腾讯 WorkBuddy"
+  Write-Host "  6) 以上全部"
+  Write-Host "  c) 只检查各工具的安装情况，不安装"
   Write-Host "  z) 重新打包 claude.ai 用的 ZIP（一般不需要，dist\skill-zips 里已有）"
   Write-Host "  q) 退出"
   Write-Host ""
-  Write-Host "  Claude 网页版/桌面聊天、Gemini、Kimi 网页版不需要运行本脚本，见 docs\install.md。"
+  Write-Host "  Claude 网页版/桌面聊天、Gemini、Kimi（网页版和桌面版）不需要运行本脚本，见 docs\install.md。"
   $choice = Read-Host "请输入编号后按回车"
   $Targets = @()
   foreach ($c in ($choice -split "[\s,，]+" | Where-Object { $_ })) {
     switch ($c) {
       "1" { $Targets += "claude" }
       "2" { $Targets += "agents" }
-      "3" { $Targets += "kiro" }
-      "4" { $Targets += "workbuddy" }
-      "5" { $Targets += "all" }
+      "3" { $Targets += "cline" }
+      "4" { $Targets += "kiro" }
+      "5" { $Targets += "workbuddy" }
+      "6" { $Targets += "all" }
       { $_ -in @("z", "Z") } { $Targets += "zip" }
+      { $_ -in @("c", "C") } { $Targets += "check" }
       default { Write-Host "已退出。"; exit 0 }
     }
   }
   if ($Targets.Count -eq 0) { Write-Host "已退出。"; exit 0 }
-  if (-not ($Targets -contains "zip")) {
+  if (-not ($Targets -contains "zip") -and -not ($Targets -contains "check")) {
     $yn = Read-Host "如果以前装过，要更新成新版本吗？旧版本会先备份。(y/N)"
     if ($yn -match "^(y|yes)$") { $Update = $true }
     $yn = Read-Host "同时安装全局准则吗？只会创建新文件或更新本项目生成的文件，不会覆盖你自己写的。(Y/n)"
@@ -192,15 +295,17 @@ if ($Targets -contains "menu") {
   }
 }
 
-if ($Targets -contains "all") { $Targets = @("claude", "agents", "kiro", "workbuddy") }
+if ($Targets -contains "all") { $Targets = @("claude", "agents", "cline", "kiro", "workbuddy") }
 
 foreach ($t in $Targets) {
   switch ($t) {
     "claude"    { Do-Claude }
     "agents"    { Do-Agents }
+    "cline"     { Do-Cline }
     "kiro"      { Do-Kiro }
     "workbuddy" { Do-WorkBuddy }
     "zip"       { Make-Zips }
+    "check"     { Do-Check; exit 0 }
   }
 }
 

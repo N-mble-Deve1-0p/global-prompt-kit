@@ -1,6 +1,12 @@
 # GitHub Copilot / VS Code 适配
 
-VS Code 本身不带 AI，里面的 AI 助手就是 GitHub Copilot。所以"在 VS Code 里用"就是"在 Copilot 里用"。如果你在 VS Code 里装的是 Claude Code 或 Kimi Code 插件，按 `claude.md` 或 `kimi.md` 处理。
+VS Code 本身只是编辑器，AI 能力来自你用的插件。先确认你在 VS Code 里用的是哪个 AI：
+- **GitHub Copilot**：需要登录 GitHub 账号并开通 Copilot。按本文件设置。
+- **Cline**：见 `cline.md`。
+- **Kilo Code**：见 `kilo-code.md`。
+- **Claude Code、Kimi Code 插件**：见 `claude.md`、`kimi.md`。
+
+如果你在 VS Code 里从没登录过 Copilot、平时用的是别的插件，就不用管本文件。
 
 ## Skills：完全支持，会自动调用
 Copilot 支持标准的 SKILL.md 格式，和本项目一致。支持的地方包括：VS Code、Visual Studio、JetBrains 系列 IDE 的 Agent 模式，Copilot CLI，以及 GitHub 网站上的 Copilot 云端 Agent。

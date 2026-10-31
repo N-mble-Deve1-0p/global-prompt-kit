@@ -1,8 +1,8 @@
-# 编码工具通用适配（GitHub Copilot、Kimi Code、Kiro 等）
+# 编码工具通用适配（Cline、Kilo Code、Z Code、GitHub Copilot、Kimi Code、Kiro 等）
 
 这些工具里，你选的模型经常会变（Copilot 可以在 GPT、Claude、Gemini 之间切换），所以统一使用 `dist/coding-agents.md`，不按模型区分。
 
-各工具的具体放置位置见：`github-copilot.md`、`kimi.md`、`kiro.md`。安装器会自动把全局准则写到正确位置（见 `docs/install.md`）。
+各工具的具体放置位置见：`cline.md`、`kilo-code.md`、`zcode.md`、`github-copilot.md`、`kimi.md`、`kiro.md`。安装器会自动把全局准则写到正确位置（见 `docs/install.md`）。
 
 ## 为什么要单独一个版本
 编码工具通常还会读取项目自己的规则文件（`AGENTS.md`、`.github/copilot-instructions.md`、`.kiro/steering/` 等）。全局准则管的是"怎么思考和沟通"，项目规则管的是"这个项目的代码怎么写"。两者冲突时，代码层面应以项目规则为准。附加片段把这一点写明。
