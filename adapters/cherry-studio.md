@@ -31,7 +31,7 @@ Cherry Studio 2.x 提供 Agent 模式，并在设置里有 Skills 管理页面�
 - 双击安装器，菜单选 1：Windows 双击 `install-windows.bat`，macOS 双击 `install-macos.command`，Linux 运行 `bash install-linux.sh`。会复制到 `~/.claude/skills/`（Windows 为 `%USERPROFILE%\.claude\skills\`）。
 - 在 Cherry Studio 的 Skills 设置页面导入。
 
-安装后到 Skills 设置页面确认 13 个都已列出并启用。Agent 的系统提示词或指令里同样放入对应版本的全局准则。
+安装后到 Skills 设置页面确认本项目的技能都已列出并启用。Agent 的系统提示词或指令里同样放入对应版本的全局准则。
 
 以上路径来自 Cherry Studio 仓库中的说明，不同版本可能调整，以你安装的版本的界面为准。
 

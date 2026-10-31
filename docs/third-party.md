@@ -65,7 +65,7 @@
 
 | 你的情况 | 装什么 |
 |---|---|
-| 主要在 claude.ai 聊天、写东西、思考 | 只装本项目的 13 个 Skill |
+| 主要在 claude.ai 聊天、写东西、思考 | 只装本项目的 Skill |
 | 用 Claude Code 写代码 | 本项目 Skill + superpowers 或 mattpocock（二选一）+ graphify（大项目时） |
 | 做前端界面 | 再加 ui-ux-pro-max 或官方 frontend-design（二选一） |
 | 创业者，从想法到上线全流程 | 本项目 Skill + gstack（手动安装，见上方提醒） |

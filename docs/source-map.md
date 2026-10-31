@@ -12,6 +12,7 @@
 - G：《GPT 上帝模式》7 条
 - H：10 个 GitHub 仓库（见 `third-party.md`）
 - I：小红书 12 个提示词新版（B 的更新版），以及 @yan5xu 的推文"我碰到的是什么经典问题的变体，并且有什么解法"
+- J：《Organization and Prompts》科研知识库方案（小红书作者"红腚大马猴"，基于 Karpathy 的 LLM Wiki 思路，针对"积累科研领域经验 + 和 LLM 协作讨论 idea"设计）
 
 ## 对照表
 
@@ -60,5 +61,13 @@
 | I8 跨领域借解（新版） | `perspective-lab` 工具 D | 采用新版结构：底层结构词汇、远领域示例、"要改哪几个变量""怎么兜底"、可直接试的方案 |
 | I11 挖掘隐藏天赋（新版） | `talent-discovery` | 新增快速版；四条主线命名；边收集边形成"天赋假设"；输出增加"暗面""工作和项目形状""桌面自我提醒" |
 | I12 人生设计术（新版） | `life-design` | 新增快速版；版本 A 改为"做到极致"、版本 C 改为"为好奇心而活"；每个版本都带季度、月、今天三级行动；四项自评由用户自己打分 |
+| J1 目录结构 | `research-wiki` 初始化步骤；`skills/research-wiki/assets/schema.md` 目录约定 | 保留结构；规则文件改为 `AGENTS.md`，另建一行 `@AGENTS.md` 的 `CLAUDE.md`，让 Claude Code、Copilot、Kiro、Kimi Code 共用 |
+| J2 CLAUDE.md 模板 | `skills/research-wiki/assets/schema.md`、`skills/research-wiki/assets/paper.md` | 拆成知识库规则文件和论文页模板；新增命名规则、概念页格式、假设条目格式、日志格式；新增"不编造论文内容、数字注明出处"等铁律 |
+| J3.1 Ingest 提示词 | `research-wiki` 操作二 | 先口头汇报再写文件；增加"快速模式"；概念出现 3 次以上自动建页 |
+| J3.2 领域全景讨论 | `research-wiki` 操作四 | 基本保留，结束时增加同步 field-map 的询问 |
+| J3.3 Idea 生成 | `research-wiki` 操作五 | 新增"自己认为最弱的地方"和实验成本；未指定方向时先给选项 |
+| J3.4 Lint 提示词 | `research-wiki` 操作六 | 合并原 CLAUDE.md 里的 Lint 清单，新增孤儿页面、已被回答的问题；改为先报告、确认后再改 |
+| J3.5 多模型辩论 | `research-wiki` 操作七、`skills/research-wiki/assets/debate.md` | 模型分工改为可替换的角色；"2025 年后"改为"最新论文"；新增回答格式要求 |
+| J4 答案写回 wiki | `research-wiki` 操作三 | 改为由 AI 主动询问是否写回，不需要用户每次手动补一句 |
 | H Karpathy 编码准则仓库 | 全局第 6、7 节 | 用自己的话重写四条原则 |
 | H 其余 9 个仓库 | `third-party.md` | 只引用和推荐，不复制代码 |

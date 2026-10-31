@@ -38,4 +38,4 @@ Claude 对 XML 标签分隔的结构响应很好，所以构建脚本会把核�
 来源：[Use skills in Claude（Claude 帮助中心）](https://support.claude.com/en/articles/12512180-use-skills-in-claude)
 
 ## 省 Token 的提醒
-Skill 平时只加载名称和描述，命中时才加载全文，所以 13 个 Skill 常驻的开销不大。但第三方 Skill 包（尤其是 ECC、gstack 这类上百个 Skill 的集合）不要全部开启，按需安装。详见 `docs/third-party.md`。
+Skill 平时只加载名称和描述，命中时才加载全文，所以本项目的 Skill 常驻的开销不大。但第三方 Skill 包（尤其是 ECC、gstack 这类上百个 Skill 的集合）不要全部开启，按需安装。详见 `docs/third-party.md`。
