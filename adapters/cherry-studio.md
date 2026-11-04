@@ -24,18 +24,19 @@ Cherry Studio 本身不决定提示词怎么写，**你选的模型决定**：
    - "导师" = 全局准则 + tutor 模板
 3. 需要联网核查的流程（fact-check、hv-research、oss-scout），在对话里打开联网搜索。
 
-## 用法二：Agent 模式
-Cherry Studio 2.x 提供 Agent 模式，并在设置里有 Skills 管理页面。根据 Cherry Studio 仓库自带的 skills-manager 说明，Agent 的 Skills 安装在用户级 `~/.claude/skills/` 或项目级 `.claude/skills/`，格式就是 SKILL.md，和本项目一致。
+## 用法二：Agent 模式和技能页面
+Cherry Studio 最新版的技能页面显示的是自己的技能库，不会把外部复制到 `~/.claude/skills/` 的文件自动收录进去。这个目录不能作为 Cherry Studio 的安装入口；项目安装器的 `claude` 目标只服务 Claude Code 和 Z Code。
 
-安装方法（任选一种）：
-- 双击安装器，菜单选 1：Windows 双击 `install-windows.bat`，macOS 双击 `install-macos.command`，Linux 运行 `bash install-linux.sh`。会复制到 `~/.claude/skills/`（Windows 为 `%USERPROFILE%\.claude\skills\`）。
-- 在 Cherry Studio 的 Skills 设置页面导入。
+推荐按下面的顺序安装：
 
-安装后到 Skills 设置页面确认本项目的技能都已列出并启用。Agent 的系统提示词或指令里同样放入对应版本的全局准则。
+1. 打开 **设置 → 技能 → 从本地 ZIP 文件安装**，逐个导入 `dist/skill-zips/` 下的 ZIP。也可以使用“从文件夹安装”，选择 `skills/<技能名>/`。
+2. 在技能页面确认每个技能卡片的开关已打开。
+3. 打开 **工作 → Agent → 编辑 → 技能**，把需要的技能绑定到该 Agent。
+4. 按上方模型表，把对应的 `dist/*.md` 全文粘贴到 Agent 的**系统提示词**；保存后新发一条消息才会生效。
 
-以上路径来自 Cherry Studio 仓库中的说明，不同版本可能调整，以你安装的版本的界面为准。
+安装器也提供专用提示：Windows 运行 `install-windows.bat` 选 **6**，macOS/Linux 运行安装器选 **6**，或直接运行 `bash scripts/install.sh cherry`。它不会复制文件，只会显示上述界面操作，避免误以为 `~/.claude/skills/` 已安装成功。
 
-参考：[Cherry Studio skills-manager 说明（tessl 镜像）](https://tessl.io/registry/skills/github/CherryHQ/cherry-studio/skills-manager)、[Cherry Studio v2.0.13 更新记录](https://newreleases.io/project/github/CherryHQ/cherry-studio/release/v2.0.13)
+聊天助手不需要绑定 Agent：编辑默认助手的提示词，粘贴对应模型的 `dist/*.md`；场景助手可再追加 `dist/templates/<名称>.md`。Cherry Studio 的菜单名称可能随版本变化，以当前界面为准。
 
 ## 省 Token 的提醒
 助手的提示词每轮都会发送。如果你用的是按量计费的 API，场景助手可以只放精简版全局准则（`core/global-prompt-lite.md`）+ 模板。

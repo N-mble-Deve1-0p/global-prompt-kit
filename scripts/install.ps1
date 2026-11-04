@@ -4,11 +4,12 @@
 # 用法：
 #   .\scripts\install.ps1                                  交互菜单
 #   .\scripts\install.ps1 -Target "claude,agents,kiro"     直接指定一个或多个目标：
-#       claude     %USERPROFILE%\.claude\skills     Claude Code、Z Code、Cherry Studio Agent  全局准则 → .claude\CLAUDE.md、.zcode\AGENTS.md
+#       claude     %USERPROFILE%\.claude\skills     Claude Code、Z Code                  全局准则 → .claude\CLAUDE.md、.zcode\AGENTS.md
 #       agents     %USERPROFILE%\.agents\skills     Kilo Code、GitHub Copilot、Kimi Code      全局准则 → .copilot\copilot-instructions.md、.kimi-code\AGENTS.md（Kilo Code 需手动设置）
 #       cline      %USERPROFILE%\.cline\skills      Cline（VS Code 插件）                     全局准则 → .cline\rules\global-prompt-kit.md
 #       kiro       %USERPROFILE%\.kiro\skills       Kiro                                    全局准则 → .kiro\steering\global-prompt-kit.md
 #       workbuddy  %USERPROFILE%\.workbuddy-ai\skills（新版）或 .workbuddy\skills（旧版）  腾讯 WorkBuddy，全局准则需在界面里粘贴
+#       cherry     不复制到 ~/.claude/skills；按 Cherry Studio 的技能页面导入 dist\skill-zips，并在界面里粘贴全局准则
 #       all        以上全部
 #       check      只检查各工具的安装情况（技能是否齐全、是否最新；全局准则是否存在、是否最新），不安装
 #       zip        重新打包 claude.ai 用的 ZIP（dist\skill-zips 已有现成的，一般不需要）
@@ -34,11 +35,11 @@ $UserHome = [Environment]::GetFolderPath("UserProfile")
 $Stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $script:ManualNotes = @()
-$Valid = @("menu", "claude", "agents", "cline", "kiro", "workbuddy", "all", "zip", "check")
+$Valid = @("menu", "claude", "agents", "cline", "kiro", "workbuddy", "cherry", "all", "zip", "check")
 $Targets = @($Target -split "[\s,，]+" | Where-Object { $_ } | ForEach-Object { $_.ToLower() })
 foreach ($t in $Targets) {
   if ($Valid -notcontains $t) {
-    Write-Host "未知选项：$t（可选 claude / agents / cline / kiro / workbuddy / all / check / zip，多个用逗号分开，可加 -Update、-NoRules）"
+    Write-Host "未知选项：$t（可选 claude / agents / cline / kiro / workbuddy / cherry / all / check / zip，多个用逗号分开，可加 -Update、-NoRules）"
     exit 1
   }
 }
@@ -132,12 +133,11 @@ function Write-Rules([string]$Src, [string]$To, [bool]$AddMarker) {
 
 function Do-Claude {
   $to = if ($Dest) { $Dest } else { P @($UserHome, ".claude", "skills") }
-  Install-Skills $to "Claude Code / Z Code / Cherry Studio Agent"
+  Install-Skills $to "Claude Code / Z Code"
   Write-Rules (Join-Path $Dist "claude.md") (P @($UserHome, ".claude", "CLAUDE.md")) $true
   if (Test-Path (Join-Path $UserHome ".zcode")) {
     Write-Rules (Join-Path $Dist "coding-agents.md") (P @($UserHome, ".zcode", "AGENTS.md")) $true
   }
-  $script:ManualNotes += "Cherry Studio 聊天助手不读这些文件：把 dist\ 里对应模型的版本粘贴到助手的提示词里"
 }
 function Do-Agents {
   $to = if ($Dest) { $Dest } else { P @($UserHome, ".agents", "skills") }
@@ -165,6 +165,15 @@ function Do-WorkBuddy {
   Install-Skills $to "WorkBuddy"
   $script:ManualNotes += "WorkBuddy：头像 → 设置 → 功能 → 个性化 → 自定义指令，粘贴 dist\lite-router.md；并在技能列表里确认本项目的技能都是「启用」状态"
   $script:ManualNotes += "如果 WorkBuddy 里看不到这些技能：完全退出 WorkBuddy 再打开；仍然没有，就在技能页面用「上传技能」导入"
+}
+function Do-Cherry {
+  Write-Host ""
+  Write-Host "[Cherry Studio] 不复制到 ~/.claude/skills：最新版的技能页面不会从该目录收录外部文件。"
+  Write-Host "  1. 设置 → 技能 → 从本地 ZIP 文件安装，逐个导入 dist\skill-zips\*.zip"
+  Write-Host "  2. 按 Cherry Studio 中实际使用的模型，把对应 dist\claude.md / gemini.md / openai.md / grok.md / domestic.md"
+  Write-Host "     的全部内容粘贴到默认助手的提示词，或工作 → Agent → 编辑 → 系统提示词。"
+  Write-Host "  3. 在设置 → 技能打开技能开关，并在工作 → Agent → 技能中绑定；然后新发一条消息。"
+  $script:ManualNotes += "Cherry Studio 已引导完成：技能必须从设置 → 技能导入 ZIP；全局准则必须粘贴到助手或 Agent 的系统提示词。详见 adapters\cherry-studio.md"
 }
 
 function Same-Dir([string]$A, [string]$B) {
@@ -223,7 +232,7 @@ function Do-Check {
   Write-Host "======================================"
   Write-Host " 安装情况检查（对照本项目当前版本）"
   Write-Host "======================================"
-  Write-Host "[1] Claude Code / Z Code / Cherry Studio Agent（共用技能文件夹）"
+  Write-Host "[1] Claude Code / Z Code（共用技能文件夹）"
   Check-Skills (P @($UserHome, ".claude", "skills"))
   Write-Host "  Claude Code："
   Check-Rules (P @($UserHome, ".claude", "CLAUDE.md")) (Join-Path $Dist "claude.md") $true
@@ -251,7 +260,7 @@ function Do-Check {
   Write-Host "  全局准则：需要在 WorkBuddy 里查看（头像 → 设置 → 功能 → 个性化 → 自定义指令）"
   Write-Host ""
   Write-Host "没用的工具显示[未安装]是正常的。"
-  Write-Host "Claude 网页版/桌面聊天、Gemini、Kimi（网页版和桌面版）、Cherry Studio 聊天助手无法从电脑上检查，"
+  Write-Host "Claude 网页版/桌面聊天、Gemini、Kimi（网页版和桌面版）、Cherry Studio 无法从电脑上检查，"
   Write-Host "验证方法见 docs\install.md 的「验证安装」一节。"
 }
 
@@ -260,12 +269,13 @@ if ($Targets -contains "menu") {
   Write-Host " Global Prompt Kit - 安装（Windows）"
   Write-Host "======================================"
   Write-Host "要装到哪些工具？可以多选，用空格分开，例如：1 3"
-  Write-Host "  1) Claude Code、Z Code、Cherry Studio Agent"
+  Write-Host "  1) Claude Code、Z Code"
   Write-Host "  2) Kilo Code（VS Code 插件）、GitHub Copilot、Kimi Code"
   Write-Host "  3) Cline（VS Code 插件）"
   Write-Host "  4) Kiro"
   Write-Host "  5) 腾讯 WorkBuddy"
-  Write-Host "  6) 以上全部"
+  Write-Host "  6) Cherry Studio（按界面导入技能和提示词）"
+  Write-Host "  7) 以上全部"
   Write-Host "  c) 只检查各工具的安装情况，不安装"
   Write-Host "  z) 重新打包 claude.ai 用的 ZIP（一般不需要，dist\skill-zips 里已有）"
   Write-Host "  q) 退出"
@@ -280,7 +290,8 @@ if ($Targets -contains "menu") {
       "3" { $Targets += "cline" }
       "4" { $Targets += "kiro" }
       "5" { $Targets += "workbuddy" }
-      "6" { $Targets += "all" }
+      "6" { $Targets += "cherry" }
+      "7" { $Targets += "all" }
       { $_ -in @("z", "Z") } { $Targets += "zip" }
       { $_ -in @("c", "C") } { $Targets += "check" }
       default { Write-Host "已退出。"; exit 0 }
@@ -295,7 +306,7 @@ if ($Targets -contains "menu") {
   }
 }
 
-if ($Targets -contains "all") { $Targets = @("claude", "agents", "cline", "kiro", "workbuddy") }
+if ($Targets -contains "all") { $Targets = @("claude", "agents", "cline", "kiro", "workbuddy", "cherry") }
 
 foreach ($t in $Targets) {
   switch ($t) {
@@ -304,6 +315,7 @@ foreach ($t in $Targets) {
     "cline"     { Do-Cline }
     "kiro"      { Do-Kiro }
     "workbuddy" { Do-WorkBuddy }
+    "cherry"    { Do-Cherry }
     "zip"       { Make-Zips }
     "check"     { Do-Check; exit 0 }
   }

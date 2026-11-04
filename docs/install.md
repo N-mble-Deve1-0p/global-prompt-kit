@@ -18,7 +18,7 @@
 | Gemini Mac 应用 | — | ✅ | — | 同网页版（见 B） |
 | Gemini 手机 App | — | — | — | 在网页上导入后自动可用 |
 | 腾讯 WorkBuddy | ✅ | ✅ | ❌ 无 Linux 版 | 放进本机文件夹（见 C），全局准则在界面里粘贴 |
-| Cherry Studio | ✅ | ✅ | ✅ | Agent 模式放进本机文件夹（见 C）；聊天助手用模板（见 D） |
+| Cherry Studio | ✅ | ✅ | ✅ | 在技能页面导入 ZIP，并在助手/Agent 提示词里粘贴全局准则（见 F） |
 | Z Code（智谱） | ✅ | ✅ | ✅ | 放进本机文件夹（见 C），和 Claude Code 共用 |
 | VS Code + Cline 插件 | ✅ | ✅ | ✅ | 放进本机文件夹（见 C） |
 | VS Code + Kilo Code 插件 | ✅ | ✅ | ✅ | 放进本机文件夹（见 C），全局准则需手动设置 |
@@ -47,7 +47,7 @@
 3. 手机 App 不用单独设置。
 
 ## C. 需要放进电脑文件夹的应用
-适用于 Claude Code、Z Code、Cherry Studio 的 Agent 模式、VS Code 的 Cline / Kilo Code / GitHub Copilot、Kiro、Kimi Code、腾讯 WorkBuddy。
+适用于 Claude Code、Z Code、VS Code 的 Cline / Kilo Code / GitHub Copilot、Kiro、Kimi Code、腾讯 WorkBuddy。Cherry Studio 请看下面的 F 节。
 
 **VS Code 用户先确认一件事**：VS Code 本身只是编辑器，AI 能力来自插件。看你平时用的是哪个 AI 插件（Cline、Kilo Code、Copilot……），就选对应的编号。
 
@@ -59,7 +59,7 @@
 
 | 编号 | 工具 | Skills 位置 |
 |---|---|---|
-| 1 | Claude Code、Z Code、Cherry Studio Agent | `~/.claude/skills/`（三者共用） |
+| 1 | Claude Code、Z Code | `~/.claude/skills/`（两者共用） |
 | 2 | Kilo Code、GitHub Copilot、Kimi Code | `~/.agents/skills/`（三者共用这个通用位置） |
 | 3 | Cline | `~/.cline/skills/` |
 | 4 | Kiro | `~/.kiro/skills/` |
@@ -92,7 +92,7 @@ Windows 上把 `~` 换成 `%USERPROFILE%`，`/` 换成 `\`。
 
 | 应用 | Skills 放到 | 全局准则放到 | 全局准则内容 |
 |---|---|---|---|
-| Claude Code、Cherry Studio Agent | `~/.claude/skills/` | `~/.claude/CLAUDE.md` | `dist/claude.md` |
+| Claude Code | `~/.claude/skills/` | `~/.claude/CLAUDE.md` | `dist/claude.md` |
 | Z Code | `~/.claude/skills/` | `~/.zcode/AGENTS.md` | `dist/coding-agents.md` |
 | Cline | `~/.cline/skills/` | `~/.cline/rules/global-prompt-kit.md` | `dist/coding-agents.md` |
 | Kilo Code | `~/.agents/skills/` 或 `~/.kilo/skills/` | 手动设置，见 `adapters/kilo-code.md` | `dist/coding-agents.md` |
@@ -108,7 +108,7 @@ Windows 上把 `~` 换成 `%USERPROFILE%`，`/` 换成 `\`。
 
 ### 装完之后
 - 重启对应的应用。
-- 按安装器最后列出的"还需要你手动做的"逐条完成。WorkBuddy 和 Cherry Studio 聊天助手的全局准则只能在界面里粘贴。
+- 按安装器最后列出的"还需要你手动做的"逐条完成。WorkBuddy 和 Cherry Studio 的全局准则只能在界面里粘贴。
 - 每个工具的细节和已知限制见 `adapters/` 下对应文件：`workbuddy.md`、`zcode.md`、`cline.md`、`kilo-code.md`、`github-copilot.md`、`kiro.md`、`kimi.md`、`cherry-studio.md`。
 - **同名技能出现两次**：有些工具会同时读取多个位置，例如 VS Code 的 Copilot "Local" 模式同时读 `~/.claude/skills/` 和 `~/.agents/skills/`，Kilo Code 打开 Claude Code 兼容后也一样。看到重复时，关掉其中一处的开关，或删掉其中一处即可。
 
@@ -125,6 +125,16 @@ Windows 上把 `~` 换成 `%USERPROFILE%`，`/` 换成 `\`。
 **网页版 / 手机 App**：插件 → 技能 → 自定义 → **文档转技能**，逐个上传 `skills/<名称>/SKILL.md`。Kimi 会把它转换成自己的格式，保存前对照原文检查一遍，确认"铁律""保护规则"这类约束没有被删掉。
 
 **全局准则**：Kimi 目前没有找到自定义指令类设置。在新对话开头粘贴 `dist/lite-router.md`；如果客户端有"常用语"之类的功能，可以存成一条方便插入。详见 `adapters/kimi.md`。
+
+## F. Cherry Studio
+Cherry Studio 的技能页面维护自己的技能库，不会自动收录复制到 `~/.claude/skills/`（Windows 为 `%USERPROFILE%\.claude\skills\`）的外部文件。因此不要用安装器的 Claude Code 选项来安装 Cherry Studio。
+
+1. **安装 Skills**：打开 **设置 → 技能 → 从本地 ZIP 文件安装**，逐个选择 `dist/skill-zips/` 下的 ZIP；也可选择 `skills/<技能名>/` 文件夹安装。
+2. **打开技能**：确认每个技能卡片右侧开关已打开。
+3. **绑定 Agent**：打开 **工作 → Agent → 编辑 → 技能**，启用需要的技能。
+4. **安装全局准则**：按实际使用的模型，把 `dist/claude.md`、`dist/gemini.md`、`dist/openai.md`、`dist/grok.md` 或 `dist/domestic.md` 全文粘贴到默认助手的提示词，或 Agent 的系统提示词。
+
+安装器选项 **6**（或 `bash scripts/install.sh cherry`）只显示这套操作，不会复制文件。保存设置后新发一条消息，再用 `plan-stress-test` 或 `deepen` 的触发语测试。
 
 ## 验证安装
 按从快到慢的顺序，分三层检查。
@@ -153,7 +163,7 @@ Windows 上把 `~` 换成 `%USERPROFILE%`，`/` 换成 `\`。
 | Kimi Code | 输入 `/skill:decision-lab` 能调用，说明已加载 | 用第三层的测试 |
 | WorkBuddy | 专家·技能·连接器 → 已安装技能，开关是打开的 | 头像 → 设置 → 功能 → 个性化 → 自定义指令 |
 | Gemini | Customize → Skills；或输入 `/` 看列表 | 设置里的个人指令 |
-| Cherry Studio | Agent 模式：Skills 设置页；聊天助手：编辑助手，看提示词 | 同左 |
+| Cherry Studio | 设置 → 技能：看技能是否导入并启用；Agent 编辑页：看是否已绑定 | 默认助手或 Agent 的系统提示词 |
 | Kimi 电脑客户端 | Work 模式 → 侧栏的技能 | 粘贴在对话开头的，无需检查 |
 | Kimi 网页版 | 插件 → 技能 → 自定义 | 粘贴在对话开头的，无需检查 |
 

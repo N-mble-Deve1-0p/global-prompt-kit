@@ -4,7 +4,7 @@
 
 - **全局准则**：每次对话都生效的底层规则，管住模型的通病：答得浅、乱认同、编来源、铺垫废话、一改就重写全文、Agent 无限重试。
 - **14 个场景 Skill**：思考、决策、研究、科研知识库、学习、讲解、人生规划等需要固定流程的任务。缺信息时先引导你补充，再按优化过的流程执行。
-- **一份 SKILL.md，多处通用**：Claude、Gemini、Z Code、Cline、Kilo Code、GitHub Copilot、Kiro、Kimi、WorkBuddy、Cherry Studio Agent 都能读取同一份 SKILL.md；不支持的环境用自动生成的可粘贴模板。
+- **一份 SKILL.md，多处通用**：Claude、Gemini、Z Code、Cline、Kilo Code、GitHub Copilot、Kiro、Kimi、WorkBuddy 都能读取同一份 SKILL.md；Cherry Studio 需从自己的技能页面导入，不要只复制到 `~/.claude/skills`。
 
 ## 快速开始
 
@@ -19,7 +19,7 @@
 | **VS Code + Cline** | 安装器自动写入 | 安装器，菜单选 3 |
 | **Kiro**（0.9 及以上） | 安装器自动写入 | 安装器，菜单选 4 |
 | **腾讯 WorkBuddy**（Windows、macOS） | 设置 → 功能 → 个性化 → 自定义指令，粘贴 `dist/lite-router.md` | 安装器，菜单选 5 |
-| **Cherry Studio** | 默认助手的提示词，按所选模型粘贴对应版本 | Agent 模式：安装器，菜单选 1；聊天助手：用 `dist/templates/` 建场景助手 |
+| **Cherry Studio** | 默认助手或 Agent 系统提示词，按所选模型粘贴对应版本 | 设置 → 技能 → 从本地 ZIP 文件安装 `dist/skill-zips/*.zip`；安装器选 6 可显示步骤 |
 | **Kimi 电脑客户端** | 没有入口，在对话开头粘贴 `dist/lite-router.md` | Work 模式 → 技能 → 上传本地技能 |
 | **Kimi 网页版 / App** | 没有入口，在对话开头粘贴 `dist/lite-router.md` | 插件 → 技能 → 自定义 → 文档转技能，上传 `SKILL.md` |
 | **其他国内模型官方 App**（DeepSeek、通义、豆包、智谱等） | 有自定义指令就放 `core/global-prompt-lite.md`；没有就在对话开头粘贴 | 需要时粘贴 `dist/templates/<名称>.md` |

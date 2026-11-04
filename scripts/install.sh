@@ -5,11 +5,12 @@
 # 用法：
 #   bash scripts/install.sh                          交互菜单
 #   bash scripts/install.sh claude agents kiro       直接指定一个或多个目标：
-#       claude     ~/.claude/skills      Claude Code、Z Code、Cherry Studio Agent  全局准则 → ~/.claude/CLAUDE.md、~/.zcode/AGENTS.md
+#       claude     ~/.claude/skills      Claude Code、Z Code                  全局准则 → ~/.claude/CLAUDE.md、~/.zcode/AGENTS.md
 #       agents     ~/.agents/skills      Kilo Code、GitHub Copilot、Kimi Code      全局准则 → ~/.copilot/copilot-instructions.md、~/.kimi-code/AGENTS.md（Kilo Code 需手动设置）
 #       cline      ~/.cline/skills       Cline（VS Code 插件）                     全局准则 → ~/.cline/rules/global-prompt-kit.md
 #       kiro       ~/.kiro/skills        Kiro                                    全局准则 → ~/.kiro/steering/global-prompt-kit.md
 #       workbuddy  ~/.workbuddy-ai/skills（新版 WorkBuddy AI）或 ~/.workbuddy/skills（旧版）  全局准则需在界面里粘贴
+#       cherry     不复制到 ~/.claude/skills；按 Cherry Studio 的技能页面导入 dist/skill-zips，并在界面里粘贴全局准则
 #       all        以上全部
 #       check      只检查各工具的安装情况（技能是否齐全、是否最新；全局准则是否存在、是否最新），不安装
 #       zip        重新打包 claude.ai 用的 ZIP（dist/skill-zips 已有现成的，一般不需要）
@@ -144,12 +145,11 @@ write_rules() {
 
 # ---------- 各目标 ----------
 do_claude() {
-  install_skills "${SKILLS_DIR:-$HOME/.claude/skills}" "Claude Code / Z Code / Cherry Studio Agent"
+  install_skills "${SKILLS_DIR:-$HOME/.claude/skills}" "Claude Code / Z Code"
   write_rules "$ROOT/dist/claude.md" "$HOME/.claude/CLAUDE.md" 1
   if [ -d "$HOME/.zcode" ]; then
     write_rules "$ROOT/dist/coding-agents.md" "$HOME/.zcode/AGENTS.md" 1
   fi
-  note "Cherry Studio 聊天助手不读这些文件：把 dist/ 里对应模型的版本粘贴到助手的提示词里"
 }
 do_agents() {
   install_skills "${SKILLS_DIR:-$HOME/.agents/skills}" "Kilo Code / GitHub Copilot / Kimi Code"
@@ -176,6 +176,15 @@ do_workbuddy() {
   if [ -d "$HOME/.workbuddy-ai" ]; then wb_dir="$HOME/.workbuddy-ai/skills"; fi
   install_skills "${SKILLS_DIR:-$wb_dir}" "WorkBuddy"
   note "WorkBuddy：头像 → 设置 → 功能 → 个性化 → 自定义指令，粘贴 dist/lite-router.md；并在技能列表里确认本项目的技能都是「启用」状态"
+}
+do_cherry() {
+  say ""
+  say "[Cherry Studio] 不复制到 ~/.claude/skills：最新版的技能页面不会从该目录收录外部文件。"
+  say "  1. 设置 → 技能 → 从本地 ZIP 文件安装，逐个导入 dist/skill-zips/*.zip"
+  say "  2. 按 Cherry Studio 中实际使用的模型，把对应 dist/claude.md、gemini.md、openai.md、grok.md、domestic.md"
+  say "     的全部内容粘贴到默认助手的提示词，或工作 → Agent → 编辑 → 系统提示词。"
+  say "  3. 在设置 → 技能打开技能开关，并在工作 → Agent → 技能中绑定；然后新发一条消息。"
+  note "Cherry Studio 已引导完成：技能必须从设置 → 技能导入 ZIP；全局准则必须粘贴到助手或 Agent 的系统提示词。详见 adapters/cherry-studio.md"
 }
 
 # ---------- 检查安装情况 ----------
@@ -228,7 +237,7 @@ do_check() {
   say "======================================"
   say " 安装情况检查（对照本项目当前版本）"
   say "======================================"
-  say "[1] Claude Code / Z Code / Cherry Studio Agent（共用技能文件夹）"
+  say "[1] Claude Code / Z Code（共用技能文件夹）"
   check_skills "$HOME/.claude/skills"
   say "  Claude Code："
   check_rules "$HOME/.claude/CLAUDE.md" "$ROOT/dist/claude.md" 1
@@ -256,7 +265,7 @@ do_check() {
   say "  全局准则：需要在 WorkBuddy 里查看（头像 → 设置 → 功能 → 个性化 → 自定义指令）"
   say ""
   say "没用的工具显示[未安装]是正常的。"
-  say "Claude 网页版/桌面聊天、Gemini、Kimi（网页版和桌面版）、Cherry Studio 聊天助手无法从电脑上检查，"
+  say "Claude 网页版/桌面聊天、Gemini、Kimi（网页版和桌面版）、Cherry Studio 无法从电脑上检查，"
   say "验证方法见 docs/install.md 的「验证安装」一节。"
 }
 
@@ -267,12 +276,13 @@ menu() {
   say " 当前系统：$OS_NAME"
   say "======================================"
   say "要装到哪些工具？可以多选，用空格分开，例如：1 3"
-  say "  1) Claude Code、Z Code、Cherry Studio Agent"
+  say "  1) Claude Code、Z Code"
   say "  2) Kilo Code（VS Code 插件）、GitHub Copilot、Kimi Code"
   say "  3) Cline（VS Code 插件）"
   say "  4) Kiro"
   say "  5) 腾讯 WorkBuddy"
-  say "  6) 以上全部"
+  say "  6) Cherry Studio（按界面导入技能和提示词）"
+  say "  7) 以上全部"
   say "  c) 只检查各工具的安装情况，不安装"
   say "  z) 重新打包 claude.ai 用的 ZIP（一般不需要，dist/skill-zips 里已有）"
   say "  q) 退出"
@@ -289,7 +299,8 @@ menu() {
       3) TARGETS="$TARGETS cline" ;;
       4) TARGETS="$TARGETS kiro" ;;
       5) TARGETS="$TARGETS workbuddy" ;;
-      6) TARGETS="$TARGETS all" ;;
+      6) TARGETS="$TARGETS cherry" ;;
+      7) TARGETS="$TARGETS all" ;;
       z|Z) TARGETS="$TARGETS zip" ;;
       c|C) TARGETS="$TARGETS check" ;;
       *) say "已退出。"; exit 0 ;;
@@ -310,9 +321,9 @@ if [ -z "$TARGETS" ] || [ "$TARGETS" = "menu" ]; then TARGETS=""; menu; fi
 
 for t in $TARGETS; do
   case "$t" in
-    all) TARGETS="claude agents cline kiro workbuddy"; break ;;
-    claude|agents|cline|kiro|workbuddy|zip|--zip|check) ;;
-    *) say "未知选项：$t（可选 claude / agents / cline / kiro / workbuddy / all / check / zip，可加 --update、--no-rules）"; exit 1 ;;
+    all) TARGETS="claude agents cline kiro workbuddy cherry"; break ;;
+    claude|agents|cline|kiro|workbuddy|cherry|zip|--zip|check) ;;
+    *) say "未知选项：$t（可选 claude / agents / cline / kiro / workbuddy / cherry / all / check / zip，可加 --update、--no-rules）"; exit 1 ;;
   esac
 done
 
@@ -323,6 +334,7 @@ for t in $TARGETS; do
     cline)     do_cline ;;
     kiro)      do_kiro ;;
     workbuddy) do_workbuddy ;;
+    cherry)    do_cherry ;;
     zip|--zip) make_zips ;;
     check)     do_check; exit 0 ;;
   esac
