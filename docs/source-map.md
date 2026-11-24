@@ -69,5 +69,6 @@
 | J3.4 Lint 提示词 | `research-wiki` 操作六 | 合并原 CLAUDE.md 里的 Lint 清单，新增孤儿页面、已被回答的问题；改为先报告、确认后再改 |
 | J3.5 多模型辩论 | `research-wiki` 操作七、`skills/research-wiki/assets/debate.md` | 模型分工改为可替换的角色；"2025 年后"改为"最新论文"；新增回答格式要求 |
 | J4 答案写回 wiki | `research-wiki` 操作三 | 改为由 AI 主动询问是否写回，不需要用户每次手动补一句 |
+| DeepTutor 官方 CLI Skill 与用户文档 | `deeptutor-cli` | 基于官方公开 CLI Skill 和 Agent Setup 指南整理为本项目可路由的中文操作流程；保留官方命令入口和安全约束，见 [DeepTutor SKILL.md](https://github.com/HKUDS/DeepTutor/blob/main/SKILL.md) 与 [Agent Setup](https://github.com/HKUDS/DeepTutor/blob/main/docs-for-dev/AGENT_SETUP.md) |
 | H Karpathy 编码准则仓库 | 全局第 6、7 节 | 用自己的话重写四条原则 |
 | H 其余 9 个仓库 | `third-party.md` | 只引用和推荐，不复制代码 |

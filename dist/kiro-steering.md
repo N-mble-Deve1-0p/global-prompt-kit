@@ -88,6 +88,7 @@ inclusion: always
 | 把论文积累成长期的研究知识库，讨论研究空白和创新假设 | research-wiki |
 | 拆解一个优秀范例或一个人的思维方式，提炼可复用规律 | reverse-engineer |
 | 学习一个概念或技能、检验自己是否真懂 | tutor |
+| 安装、配置、使用或排查 DeepTutor 平台（CLI、知识库、学习路径、Partner、记忆或服务） | deeptutor-cli |
 | 需要把复杂内容讲透：受控写作、图表、交互页面、解说视频 | explain-levels |
 | 挖掘被忽视的天赋和优势 | talent-discovery |
 | 规划人生方向、设计未来几年的可能路径 | life-design |

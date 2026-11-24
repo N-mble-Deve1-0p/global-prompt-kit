@@ -59,6 +59,7 @@
 | `research-wiki` | 把论文积累成长期的研究知识库：处理论文、问答写回、领域全景、生成 idea、健康检查、多模型辩论（需要能读写文件的工具） | "帮我建一个研究知识库" / "处理这篇论文" |
 | `reverse-engineer` | 拆解优秀范例或人物思维，提炼规律 | "拆解一下这个页面为什么转化高" |
 | `tutor` | 学概念、学技能、检验是否真懂、学习路径 | "考考我是不是真懂了 X" |
+| `deeptutor-cli` | 安装、配置、使用或排查 DeepTutor 学习平台 | "帮我用 DeepTutor 建一个课程知识库" |
 | `explain-levels` | 把复杂内容讲透：干净文字→图表→交互网页→视频 | "做个可交互的演示讲清楚这个" |
 | `talent-discovery` | 挖掘被忽视的天赋 | "帮我找找我的天赋" |
 | `life-design` | 人生方向规划，三个五年版本 | "我不知道未来几年该怎么走" |
@@ -73,7 +74,7 @@ adapters/
   claude.md  gemini.md  openai.md  grok.md  domestic.md  coding-agents.md   按模型：包装方式和附加片段
   cherry-studio.md  workbuddy.md  zcode.md  cline.md  kilo-code.md
   github-copilot.md  kiro.md  kimi.md                                        按工具：放置位置和安装方法
-skills/                   14 个 Skill（SKILL.md 格式，部分带 assets/ 附件）
+skills/                   Skills（SKILL.md 格式，部分带 assets/ 附件）
 install-windows.bat       Windows：双击安装 Skills 和全局准则
 install-macos.command     macOS：双击安装 Skills 和全局准则
 install-linux.sh          Linux：bash install-linux.sh
